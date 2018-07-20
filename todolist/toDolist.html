@@ -165,8 +165,13 @@
         ol li:first-child {
             display: none;
         }
+
         [v-cloak] {
             display: none
+        }
+
+        input.updates {
+            display: block;
         }
     </style>
 </head>
@@ -186,9 +191,13 @@
                 <span id="todocount">{{doneNum.num}}</span>
             </h2>
             <ol id="todolist" class="demo-box">
-                <li v-for="(items,index) in message" v-on:click="doThis(index)" v-if="items.isDone==false">
-                    <input type="checkbox">
-                    <p id="p-0">{{items.name}}</p>
+                <li v-for="(items,index) in message" v-if="items.isDone==false">
+                    <input type="checkbox" v-on:click="doThis(index)">
+                    <p id="p-0" v-on:dblclick="update (index)">
+                        <!-- <input :class="[{update:items.isShow}]"  @keyup.enter='saveinput(index)' type="text" v-on:blur="blurinput(index)" v-model="items.name"> {{items.name}} -->
+                        <input :class='{updates:items.isShow==false}' v-focus v-if="items.isShow==false" @keyup.enter='saveinput(index)' type="text"
+                            v-on:blur="blurinput(index)" v-model="items.name"> {{items.name}}
+                    </p>
                     <a href="javascript:remove(0)" v-on:click.stop="removes (index)">-</a>
                 </li>
             </ol>
@@ -196,9 +205,12 @@
                 <span id="donecount">{{doneNum.finishNum}}</span>
             </h2>
             <ul id="donelist">
-                <li draggable="true" v-for="(items,index) in message" v-on:click="doThis(index)" v-if="items.isDone==true">
-                    <input type="checkbox" checked="checked">
-                    <p v-bind:id="{}" id="p-1">{{items.name}}</p>
+                <li draggable="true" v-for="(items,index) in message" v-if="items.isDone==true">
+                    <input type="checkbox" checked="checked" v-on:click="doThis(index)">
+                    <p id="p-1" v-on:dblclick.stop="update (index)">
+                        <input :class='{updates:items.isShow==false}' v-focus v-if="items.isShow==false" @keyup.enter='saveinput(index)' type="text"
+                            v-on:blur="blurinput(index)" v-model="items.name"> {{items.name}}
+                    </p>
                     <a href="javascript:remove(1)" v-on:click.stop="removes (index)">-</a>
                 </li>
             </ul>
@@ -214,6 +226,15 @@
 </html>
 <script src="../vue.min.js"></script>
 <script>
+    // 注册一个全局自定义指令 `v-focus`
+    Vue.directive('focus', {
+        // 当被绑定的元素插入到 DOM 中时……
+        inserted: function (el) {
+            // 聚焦元素
+            el.focus()
+        }
+    });
+
     let message = window.localStorage.getItem('message');
     if (message) {
         message = JSON.parse(message);
@@ -221,12 +242,21 @@
         message = [{
             name: '',
             isDone: false,
+            isShow: true
         }]
     }
-
-    function getData() {
-        window.localStorage.setItem('message', JSON.stringify(app.message))
+    window.onbeforeunload = function () {
+        //  这是用来设定一个时间, 时间到了, 就会执行一个指定的 method。
+        // setTimeout(onunloadcancel, 10);
+        // return "真的离开?";
+        // window.localStorage.setItem('深圳是一个好地方,除了房价有点贵','111');
+        // 保存数据
+        window.localStorage.setItem('message', JSON.stringify(message));
     }
+
+    // function getData() {
+    //     window.localStorage.setItem('message', JSON.stringify(app.message))
+    // }
 
     let app = new Vue({
         // 选择器
@@ -239,21 +269,45 @@
         // 方法
         methods: {
             handle() {
-                this.message.push({
-                    name: this.something,
-                    isDone: false,
-                });
-                getData();
+                this.something = this.something.trim();
+                if (this.something != '') {
+                    this.message.push({
+                        name: this.something,
+                        isDone: false,
+                        isShow: true
+                    });
+                    this.something = ''
+                    // console.log(message);
+                    // getData();
+                }
             },
+            // 
             doThis(index) {
                 this.message[index].isDone = !this.message[index].isDone
                 // console.log(this.message[index].isDone);
-                getData();
+                // getData();
             },
             removes(index) {
                 // console.log(index);
                 this.message.splice(index, 1);
-                getData();
+                // getData();
+            },
+            // 显示input
+            update(index) {
+                for (var i = 0; i < this.message.length; i++) {
+                    this.message[i].isShow = true
+                }
+                this.message[index].isShow = false
+                // getData();
+                console.log(this.message[index].isShow)
+            },
+            // 回车修改
+            saveinput(index) {
+                this.message[index].isShow = true;
+                // getData();
+            },
+            blurinput(index) {
+                this.message[index].isShow = true
             }
         },
         // 计算数属性
