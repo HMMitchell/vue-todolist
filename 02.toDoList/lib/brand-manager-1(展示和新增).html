@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>品牌管理(内存版)</title>
+    <script src="./vue.js"></script>
+    <style>
+        #app {
+            width: 600px;
+            margin: 10px auto;
+        }
+
+        .tb {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        .tb th {
+            background-color: #0094ff;
+            color: white;
+        }
+
+        .tb td,
+        .tb th {
+            padding: 5px;
+            border: 1px solid black;
+            text-align: center;
+        }
+
+        .add {
+            padding: 5px;
+            border: 1px solid black;
+            margin-bottom: 10px;
+        }
+    </style>
+
+</head>
+
+<script type="text/x-template" id="templateId">
+    <div>
+            <div class="add">
+                编号:
+                <input v-model="id" type="text"> 品牌名称:
+                <input v-model="name" type="text" @keydown.enter="add">
+                <input type="button" @click="add" value="添加">
+            </div>
+
+            <div class="add">
+                品牌名称:
+                <input type="text"  placeholder="请输入搜索条件">
+            </div>
+            <table class="tb">
+                <tr>
+                    <th>编号</th>
+                    <th>品牌名称</th>
+                    <th>创立时间</th>
+                    <th>操作</th>
+                </tr>
+                <!-- 动态生成内容tr -->
+                <tr v-if="brandList.length==0">
+                    <td colspan="4">没有数据啦</td>
+                </tr>
+                <tr :key="item.id" v-for="(item,index) in brandList">
+                    <td>{{item.id}}</td>
+                    <td>{{item.name}}</td>
+                    <td>{{item.ctime}}</td>
+                    <td><a href="javascript:void(0)" @click="deleteBrand(index)">删 除</a></td>
+                </tr>
+            </table>
+        </div>
+
+</script>
+
+<body>
+    <div id="app">
+        <brand-manager></brand-manager>
+    </div>
+</body>
+<script>
+    //定义并且注册组件
+    Vue.component('brand-manager', {
+        template: "#templateId",
+        data(){
+            return {
+                id:'',
+                name:'',
+                brandList:[
+                    {id:1,name:"劳斯莱斯",ctime:new Date()},
+                    {id:2,name:"法拉利",ctime:new Date()}
+                ]
+            }    
+        },
+        methods:{
+            //增加
+            add(){
+                this.brandList.push({id:this.id,name:this.name,ctime:new Date()})
+
+                this.id = ""
+                this.name = ""
+            },
+            //删除
+            deleteBrand(index){
+                this.brandList.splice(index,1)
+            }
+        }
+    })
+
+    //一个项目中只需要有一个根实例
+    var vm = new Vue({
+        el: "#app"
+    })
+</script>
+
+</html>
